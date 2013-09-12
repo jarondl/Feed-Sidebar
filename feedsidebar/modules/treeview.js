@@ -1,3 +1,5 @@
+Components.utils.import("resource://feedbar-modules/feedhistory.js");
+
 var FEEDBAR = {
 	strings : {
 		_backup : null,
@@ -920,6 +922,14 @@ var FEEDBAR = {
 	setCellRead : function (idx, updateUI) {
 		var cellID = FEEDBAR.getCellID(idx);
 		
+        // read existing places annotations
+        // Find the parent first
+		var parentIdx = FEEDBAR.getParentIndex(idx);
+		var parentLivemarkID = FEEDBAR.getCellLivemarkId(parentIdx);
+        
+        var feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
+        feedhistory.add_uri(cellID);
+        
 		// Add to DB
 		var db = FEEDBAR.getDB();
 		
@@ -982,6 +992,15 @@ var FEEDBAR = {
 	setCellUnread : function (idx) {
 		var cellID = FEEDBAR.getCellID(idx);
 		
+        // Remove annotation
+        //read existing places annotations
+        // Find the parent first
+		var parentIdx = FEEDBAR.getParentIndex(idx);
+		var parentLivemarkID = FEEDBAR.getCellLivemarkId(parentIdx);
+
+        feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
+        feedhistory.remove_uri(cellID);
+        
 		// Remove from history DB
 		var db = FEEDBAR.getDB();
 		

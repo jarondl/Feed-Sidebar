@@ -1,4 +1,5 @@
 Components.utils.import("resource://feedbar-modules/treeview.js");
+Components.utils.import("resource://feedbar-modules/feedhistory.js");
 Components.utils.import("resource://gre/modules/PlacesUtils.jsm");
 
 var FEED_GETTER = {
@@ -860,6 +861,9 @@ FeedbarParseListener.prototype = {
 		
 		feedObject.image = feedObject.siteUri.substr(0, (feedObject.siteUri.indexOf("/", 9) + 1)) + "favicon.ico";
 		
+		//  get history for current feed
+		var feedhistory = new FEEDHISTORY.FeedHistoryClass(feedObject.livemarkId);
+		
 		var numItems = feed.items.length;
 		
 		for (var i = 0; i < numItems; i++) {
@@ -962,7 +966,9 @@ FeedbarParseListener.prototype = {
 				
 				itemObject.description = itemObject.description.replace(/<script[^>]*>[\s\S]+<\/script>/gim, "");
 				
-				itemObject.visited = FEED_GETTER.history.isVisitedURL(itemObject.uri, itemObject.id);
+				//itemObject.visited = FEED_GETTER.history.isVisitedURL(itemObject.uri, itemObject.id);
+				
+				itemObject.visited = feedhistory.checkVisited(itemObject.id);
 				
 				feedObject.items.push(itemObject);
 			} catch (e) {
