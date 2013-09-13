@@ -171,6 +171,10 @@ var FEEDBAR = {
 	getCellLivemarkId : function (idx) {
 		return FEEDBAR.visibleData[idx].livemarkId;
 	},
+    
+	getCellGuid : function (idx) {
+		return FEEDBAR.visibleData[idx].guid;
+	},
 	
 	getCellID : function (idx) {
 		return FEEDBAR.visibleData[idx].id;
@@ -647,7 +651,7 @@ var FEEDBAR = {
 			}
 		}
 		
-		FEEDBAR.childData[feedObject.id] = { "id" : feedObject.id, "livemarkId" : feedObject.livemarkId, "label" : feedObject.label, "isContainer" : true, "isOpen" : false, "uri" : feedObject.uri, "siteUri" : feedObject.siteUri, "description" : feedObject.description, "image" : feedObject.image, "items" : [] };
+		FEEDBAR.childData[feedObject.id] = { "id" : feedObject.id, "livemarkId" : feedObject.livemarkId, "label" : feedObject.label, "isContainer" : true, "isOpen" : false, "uri" : feedObject.uri, "siteUri" : feedObject.siteUri, "description" : feedObject.description, "image" : feedObject.image, "items" : [], "guid":feedObject.guid };
 		FEEDBAR.childData[feedObject.id].items = toInsert;
 		
 		var folderIdx = -1;
@@ -700,7 +704,7 @@ var FEEDBAR = {
 		if (hasVisible) {
 			if (folderIdx < 0) {
 				var sortType = FEEDBAR.prefs.getCharPref("lastSort");
-				var toPush = { "id" : feedObject.id, "livemarkId" : feedObject.livemarkId, "label" : " " + feedObject.label.replace(/^\s+/g, ""), "isContainer" : true, "isOpen" : false, "uri" : feedObject.uri, "siteUri" : feedObject.siteUri, "description" : feedObject.description, "image" : feedObject.image, "lastUpdated": FEEDBAR.childData[feedObject.id].items[0].published, "lastRedrawn" : new Date().getTime() };
+				var toPush = { "id" : feedObject.id, "livemarkId" : feedObject.livemarkId, "guid": feedObject.guid, "label" : " " + feedObject.label.replace(/^\s+/g, ""), "isContainer" : true, "isOpen" : false, "uri" : feedObject.uri, "siteUri" : feedObject.siteUri, "description" : feedObject.description, "image" : feedObject.image, "lastUpdated": FEEDBAR.childData[feedObject.id].items[0].published, "lastRedrawn" : new Date().getTime() };
 			
 				if (numUnread) {
 					toPush.numUnread = numUnread;
@@ -926,8 +930,9 @@ var FEEDBAR = {
         // Find the parent first
 		var parentIdx = FEEDBAR.getParentIndex(idx);
 		var parentLivemarkID = FEEDBAR.getCellLivemarkId(parentIdx);
+		var parentGuid = FEEDBAR.getCellGuid(parentIdx);
         
-        var feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
+        var feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID, parentGuid);
         feedhistory.add_uri(cellID);
         
 		
@@ -989,8 +994,9 @@ var FEEDBAR = {
         // Find the parent first
 		var parentIdx = FEEDBAR.getParentIndex(idx);
 		var parentLivemarkID = FEEDBAR.getCellLivemarkId(parentIdx);
+		var parentGuid = FEEDBAR.getCellGuid(parentIdx);
 
-        feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
+        feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID, parentGuid);
         feedhistory.remove_uri(cellID);
         
 				

@@ -1,19 +1,21 @@
 var FEEDHISTORY = {
     annotationService : Components.classes["@mozilla.org/browser/annotation-service;1"]
                               .getService(Components.interfaces.nsIAnnotationService),
-       	log : function (m) {
+    log : function (m) {
 		var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
 		consoleService.logStringMessage("FEEDBAR: FEEDHISTORY: " + m);
 	},
-    FeedHistoryClass : function(LivemarkID){
+    FeedHistoryClass : function(LivemarkID, guid){
         // initialize. first check if annotation already exists
         try {
             var feedhistory_json = FEEDHISTORY.annotationService.getItemAnnotation(LivemarkID, "feedbar/history");
             var feedhistory = JSON.parse(feedhistory_json);
+            //FEEDHISTORY.log("new feedhistory for guid "+ guid);
         } catch(e){
             var feedhistory = [];
         }
         this.LivemarkID = LivemarkID;
+        this.guid = guid;
         this.feedhistory = feedhistory;
         
         // METHODS

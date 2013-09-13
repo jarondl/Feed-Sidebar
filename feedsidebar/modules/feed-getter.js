@@ -197,7 +197,7 @@ var FEED_GETTER = {
 		FEED_GETTER.getLivemarks(livemarkIds, function (livemarks) {
 			for (var i = 0; i < livemarks.length; i++) {
 				FEED_GETTER.feedsToFetch.push({ name : livemarks[i].title, feed : livemarks[i].feedURI.spec });
-				FEED_GETTER.feedData[livemarks[i].feedURI.spec.toLowerCase()] = { name : livemarks[i].title, bookmarkId : livemarks[i].id, uri : livemarks[i].feedURI.spec };
+				FEED_GETTER.feedData[livemarks[i].feedURI.spec.toLowerCase()] = { name : livemarks[i].title, bookmarkId : livemarks[i].id, uri : livemarks[i].feedURI.spec, guid: livemarks[i].guid };
 			}
 			
 			if (FEED_GETTER.feedsToFetch.length == 0) {
@@ -457,7 +457,7 @@ var FEED_GETTER = {
 				return;
 			
 			FEED_GETTER.feedsToFetch.push({ name : livemark.title, feed : livemark.feedURI.spec });
-			FEED_GETTER.feedData[livemark.feedURI.spec.toLowerCase()] = { name : livemark.title, bookmarkId : livemark.id, uri : livemark.feedURI.spec };
+			FEED_GETTER.feedData[livemark.feedURI.spec.toLowerCase()] = { name : livemark.title, bookmarkId : livemark.id, uri : livemark.feedURI.spec, guid: livemarks[i].guid };
 
 			FEED_GETTER.updateAFeed(FEED_GETTER.feedsToFetch.length - 1);
 		});
@@ -803,6 +803,7 @@ FeedbarParseListener.prototype = {
 		feedObject.uri = resolvedUri;
 		
 		feedObject.livemarkId = FEED_GETTER.feedData[feedObject.uri.toLowerCase()].bookmarkId;
+		feedObject.guid = FEED_GETTER.feedData[feedObject.uri.toLowerCase()].guid;
 		
 		try {
 			feedObject.siteUri = feed.link.resolve("");
@@ -836,7 +837,7 @@ FeedbarParseListener.prototype = {
 		feedObject.image = feedObject.siteUri.substr(0, (feedObject.siteUri.indexOf("/", 9) + 1)) + "favicon.ico";
 		
 		//  get history for current feed
-		feedObject.history = new FEEDHISTORY.FeedHistoryClass(feedObject.livemarkId);
+		feedObject.history = new FEEDHISTORY.FeedHistoryClass(feedObject.livemarkId, feedObject.guid);
 		
 		var numItems = feed.items.length;
 		
