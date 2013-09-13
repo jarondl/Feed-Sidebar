@@ -645,32 +645,6 @@ var FEED_GETTER = {
 		}
 	},
 	
-	theFile : null,
-	theDB : null,
-	
-	getDB : function () {
-		if (!FEED_GETTER.theFile) {
-			FEED_GETTER.theFile = Components.classes["@mozilla.org/file/directory_service;1"]
-							 .getService(Components.interfaces.nsIProperties)
-							 .get("ProfD", Components.interfaces.nsIFile);
-			FEED_GETTER.theFile.append("feedbar.sqlite");
-		}
-		
-		if (!FEED_GETTER.theDB) {
-			FEED_GETTER.theDB = Components.classes["@mozilla.org/storage/service;1"]
-						 .getService(Components.interfaces.mozIStorageService).openDatabase(FEED_GETTER.theFile);
-		}
-		
-		return FEED_GETTER.theDB;
-	},
-	
-	closeDB : function () {
-		if (FEED_GETTER.theDB) {
-			FEED_GETTER.theDB.close();
-			delete FEED_GETTER.theDB;
-			FEED_GETTER.theDB = null;
-		}
-	},
 	
 	decodeEntities : function (aStr) {
 		var	formatConverter = Components.classes["@mozilla.org/widget/htmlformatconverter;1"].createInstance(Components.interfaces.nsIFormatConverter);
@@ -862,7 +836,7 @@ FeedbarParseListener.prototype = {
 		feedObject.image = feedObject.siteUri.substr(0, (feedObject.siteUri.indexOf("/", 9) + 1)) + "favicon.ico";
 		
 		//  get history for current feed
-		var feedhistory = new FEEDHISTORY.FeedHistoryClass(feedObject.livemarkId);
+		feedObject.history = new FEEDHISTORY.FeedHistoryClass(feedObject.livemarkId);
 		
 		var numItems = feed.items.length;
 		
@@ -968,7 +942,7 @@ FeedbarParseListener.prototype = {
 				
 				//itemObject.visited = FEED_GETTER.history.isVisitedURL(itemObject.uri, itemObject.id);
 				
-				itemObject.visited = feedhistory.checkVisited(itemObject.id);
+				itemObject.visited = feedObject.history.checkVisited(itemObject.id);
 				
 				feedObject.items.push(itemObject);
 			} catch (e) {

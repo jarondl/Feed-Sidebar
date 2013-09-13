@@ -930,15 +930,7 @@ var FEEDBAR = {
         var feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
         feedhistory.add_uri(cellID);
         
-		// Add to DB
-		var db = FEEDBAR.getDB();
 		
-		var insert = db.createStatement("INSERT INTO history (id, date) VALUES (?1, ?2)");
-		insert.bindUTF8StringParameter(0, cellID);
-		insert.bindInt64Parameter(1, (new Date().getTime()));
-		
-		try { insert.execute(); } catch (duplicateKey) { }
-		try { insert.finalize(); } catch (notNeeded) { }
 		
 		// Find it in the childData object to set its "visited" property permanently.
 		var parentIdx = FEEDBAR.getParentIndex(idx);
@@ -1001,16 +993,7 @@ var FEEDBAR = {
         feedhistory = new FEEDHISTORY.FeedHistoryClass(parentLivemarkID);
         feedhistory.remove_uri(cellID);
         
-		// Remove from history DB
-		var db = FEEDBAR.getDB();
-		
-		var deleteSql = db.createStatement("DELETE FROM history WHERE id=?1");
-		deleteSql.bindUTF8StringParameter(0, cellID);
-		
-		try { deleteSql.execute(); } catch (e) { }
-		
-		deleteSql.finalize();
-		
+				
 		// Find it in the childData object to set its "visited" property permanently.
 		var parentIdx = FEEDBAR.getParentIndex(idx);
 		var parentID = FEEDBAR.getCellID(parentIdx);
@@ -1071,63 +1054,7 @@ var FEEDBAR = {
 		
 			FEEDBAR.filter(true);
 		
-			var db = FEEDBAR.getDB();
-		
-			if (!db.tableExists("history")) {
-				db.executeSimpleSQL("CREATE TABLE IF NOT EXISTS history (id TEXT PRIMARY KEY, date INTEGER)");
-			}
-		
-			if (!db.tableExists("state")) {
-				db.executeSimpleSQL("CREATE TABLE IF NOT EXISTS state (id TEXT PRIMARY KEY, open INTEGER)");
-			}
-			else {
-				var select = db.createStatement("SELECT id, open FROM state");
-			
-				try {
-					while (select.executeStep()) {
-						var id = select.getString(0);
-						var open = select.getInt32(1);
-					
-						FEEDBAR.openStates[id] = open;
-					}
-				} catch (e) {
-					FEEDBAR.log(e);
-				} finally {
-					select.reset();
-				}
-			
-				select.finalize();
-			}
-		
-			try {
-				var file = Components.classes['@mozilla.org/file/directory_service;1']
-								.getService(Components.interfaces.nsIProperties) //changed by <asqueella@gmail.com>
-								.get("ProfD", Components.interfaces.nsIFile);
-				file.append("feedbar.cache");
-			
-				var data	 = new String();
-				var fiStream = Components.classes['@mozilla.org/network/file-input-stream;1']
-								.createInstance(Components.interfaces.nsIFileInputStream);
-				var siStream = Components.classes['@mozilla.org/scriptableinputstream;1']
-								.createInstance(Components.interfaces.nsIScriptableInputStream);
-				fiStream.init(file, 1, 0, false);
-				siStream.init(fiStream);
-				data += siStream.read(-1);
-				siStream.close();
-			
-				// The JSON is stored as UTF-8, but JSON only works properly with Unicode
-				var unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-				unicodeConverter.charset = "UTF-8";
-				data = unicodeConverter.ConvertToUnicode(data);
-			
-				FEEDBAR.childData = JSON.parse(data);
-				FEEDBAR.refreshTree();
-			} catch (e) {
-				// Cache does not exist.
-				// FEEDBAR.log(e);
-			}
-		}
-		
+        }		
 		FEEDBAR.updateNotifier();
 	},
 	
@@ -1198,30 +1125,6 @@ var FEEDBAR = {
 			} catch (e) {
 			}
 		
-			var db = FEEDBAR.getDB();
-		
-			var empty = db.createStatement("DELETE FROM state");
-			empty.execute();
-			empty.finalize();
-		
-			for (id in FEEDBAR.openStates) {
-				if (!FEEDBAR.openStates[id]) {
-					var insert = db.createStatement("INSERT INTO state (id, open) VALUES (?1, 0)");
-					insert.bindStringParameter(0, id);
-				
-					try {
-						insert.execute();
-					} catch (e) {
-						FEEDBAR.log(e);
-					} finally {
-						insert.reset();
-					}
-				
-					insert.finalize();
-				}
-			}
-		
-			FEEDBAR.closeDB();
 		}
 	},
 	
@@ -1753,32 +1656,7 @@ var FEEDBAR = {
 		win.content.document.location.href = url;
 	},
 	
-	theFile : null,
-	theDB : null,
-	
-	getDB : function () {
-		if (!FEEDBAR.theFile) {
-			FEEDBAR.theFile = Components.classes["@mozilla.org/file/directory_service;1"]
-							 .getService(Components.interfaces.nsIProperties)
-							 .get("ProfD", Components.interfaces.nsIFile);
-			FEEDBAR.theFile.append("feedbar.sqlite");
-		}
-		
-		if (!FEEDBAR.theDB) {
-			FEEDBAR.theDB = Components.classes["@mozilla.org/storage/service;1"]
-						 .getService(Components.interfaces.mozIStorageService).openDatabase(FEEDBAR.theFile);
-		}
-		
-		return FEEDBAR.theDB;
-	},
-	
-	closeDB : function () {
-		if (FEEDBAR.theDB) {
-			FEEDBAR.theDB.close();
-			delete FEEDBAR.theDB;
-			FEEDBAR.theDB = null;
-		}
-	},
+
 	
 	passesFilter : function (str) {
 		if (FEEDBAR.searchFilter.length == 0) {
